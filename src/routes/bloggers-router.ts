@@ -1,4 +1,5 @@
 import {Router, Request, Response} from "express";
+import {bloggersRepository} from "../repositories/bloggers-repository";
 
 export let bloggers: BloggerViewModelType[] = [
     {id: 1, name: "Lenko", youtubeUrl: "https://www.youtube.com/channel/UCkgXcNSMktRtfMiv64Pxo5g/videos"},
@@ -26,15 +27,7 @@ const errorsResult = (res: Response, errorsMessages: FieldErrorType[], status: n
     res.status(status).send(errorResult)
 }
 
-const getLastId = (bloggersArray: BloggerViewModelType[]) => {
-    let lastIndex = 0;
-    bloggersArray.forEach(el => {
-        if (el.id > lastIndex) {
-            lastIndex = el.id
-        }
-    })
-    return lastIndex
-}
+
 
 bloggersRouter.get('/', (req: Request, res: Response) => {
     res.send(bloggers)
@@ -53,19 +46,14 @@ bloggersRouter.post('/', (req: Request, res: Response) => {
     if (errors.length !== 0) {
         errorsResult(res, errors, 404)
     } else {
-        const newBlogger: BloggerViewModelType = {
-            id: getLastId(bloggers) + 1,
-            name: body.name,
-            youtubeUrl: body.youtubeUrl
-        }
-        bloggers.push(newBlogger)
+        const newBlogger = bloggersRepository.createBlogger(body.name, body.youtubeUrl)
         res.status(201).send(newBlogger)
     }
 })
 
 bloggersRouter.get('/:id', (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
-    const blogger = bloggers.find(bl => bl.id === id)
+    const blogger = bloggersRepository.getBloggerById(id)
     if (!id) {
         res.send(404)
         return;
@@ -81,8 +69,8 @@ bloggersRouter.get('/:id', (req: Request, res: Response) => {
 bloggersRouter.put('/:id', (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
     const errors: FieldErrorType[] = []
-    const blogger = bloggers.find(bl => bl.id === id)
     const body: BloggerInputModelType = req.body
+    const blogger = bloggersRepository.putBlogger(id, body.name, body.youtubeUrl)
     const reg = new RegExp("^(http[s]?:\\/\\/(www\\.)?|ftp:\\/\\/(www\\.)?|www\\.){1}([0-9A-Za-z-\\.@:%_\+~#=]+)+((\\.[a-zA-Z]{2,3})+)(/(.)*)?(\\?(.)*)?")
     if (!id) {
         res.send(404)
@@ -101,28 +89,24 @@ bloggersRouter.put('/:id', (req: Request, res: Response) => {
     if (!blogger) {
         res.status(404).send()
     } else {
-        blogger.name = body.name
-        blogger.youtubeUrl = body.youtubeUrl
         res.sendStatus(204).send()
     }
 })
 
+
+// ПРОВЕРИТЬ С ТП
+//убрала дополинительную проверку, хорошо проверить, может валиться тест
 bloggersRouter.delete('/:id', (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
-    const blogger = bloggers.find(bl => bl.id === id)
+    const blogger = bloggersRepository.deleteBlogger(id)
     if (!id) {
         res.send(404)
     }
+    //нужна ли здесь проверка на наличие блогера, что этот айдишник не входит в скоуп?
     if (!blogger) {
         res.send(404)
     } else {
-        const newBloggerArray = bloggers.filter(bl => bl.id !== id)
-        if (newBloggerArray.length < bloggers.length) {
-            bloggers = newBloggerArray
-            res.sendStatus(204).send()
-        } else {
-            res.send(404)
-        }
+        res.sendStatus(204).send()
     }
 })
 
