@@ -47,7 +47,12 @@ exports.postsRouter.post('/', auth_middleware_1.authValidationMiddleware, (req, 
     else {
         const newPost = posts_repository_1.postsRepository.createPost(body.title, body.shortDescription, body.content, body.bloggerId);
         if (!newPost) {
-            res.status(400).send({ errors: [{ message: "You should enter the correct bloggerId", field: "bloggerId" }] });
+            res.status(400).send({
+                errorsMessages: [{
+                        message: "You should enter the correct bloggerId",
+                        field: "bloggerId"
+                    }]
+            });
             return;
         }
         res.status(201).send(newPost);
@@ -93,7 +98,11 @@ exports.postsRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (req
     if (errors.length !== 0) {
         errorsResult(res, errors, 400);
     }
-    if (!isUpdated) {
+    if (isUpdated === false) {
+        errorsResult(res, errors, 404);
+    }
+    if (isUpdated === null) {
+        errorsCollect(errors, "You should enter the correct BloggerId", "bloggerId");
         errorsResult(res, errors, 400);
     }
     else {

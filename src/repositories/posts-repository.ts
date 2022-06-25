@@ -85,8 +85,12 @@ export const postsRepository = {
     updatePost(id: number, title: string, shortDescription: string, content: string, bloggerId: number) {
         const post = posts.find(p => p.id === id)
         const blogger = bloggers.find(bl => bl.id === bloggerId)
-        if (!post || !blogger) {
+        if (!post)
+            {
             return false
+        }
+        if(!blogger) {
+            return null
         }
         post.title = title;
         post.shortDescription = shortDescription;
