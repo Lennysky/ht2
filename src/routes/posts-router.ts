@@ -48,7 +48,7 @@ postsRouter.post('/',
     }*/
 
     if (errors.length !== 0) {
-        errorsResult(res, errors, 404)
+        errorsResult(res, errors, 400)
     } else {
         const newPost = postsRepository.createPost(
             body.title,
@@ -56,7 +56,7 @@ postsRouter.post('/',
             body.content,
             body.bloggerId)
         if (!newPost) {
-            res.status(404).send({errors: [{message: "You should enter the correct bloggerId", field: "bloggerId"}]})
+            res.status(400).send({errors: [{message: "You should enter the correct bloggerId", field: "bloggerId"}]})
         return
         }
         res.status(201).send(newPost)
@@ -105,10 +105,10 @@ postsRouter.put('/:id',
         return
     }*/
     if (errors.length !== 0) {
-        errorsResult(res, errors, 404)
+        errorsResult(res, errors, 400)
     }
     if (!isUpdated) {
-        errorsResult(res, errors, 404)
+        errorsResult(res, errors, 400)
     } else {
         res.status(204).send()
     }
