@@ -108,7 +108,7 @@ postsRouter.put('/:id',
         errorsResult(res, errors, 400)
     }
     if (!isUpdated) {
-        errorsResult(res, errors, 404)
+        errorsResult(res, errors, 400)
     } else {
         res.status(204).send()
     }

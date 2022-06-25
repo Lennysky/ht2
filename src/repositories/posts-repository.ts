@@ -97,7 +97,7 @@ export const postsRepository = {
     },
     deletePost(id: number) {
         const post = posts.find(p => p.id === id)
-        const newPostsArray = posts.filter(p => p.id === id)
+        const newPostsArray = posts.filter(p => p.id !== id)
         if (newPostsArray.length < posts.length) {
             posts = newPostsArray
             return true
