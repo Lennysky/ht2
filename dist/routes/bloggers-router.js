@@ -71,7 +71,7 @@ exports.bloggersRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (
         errorsCollect(errors, "Your name should be correct", "name");
     }
     if (!body.youtubeUrl || typeof body.youtubeUrl !== 'string' || !body.youtubeUrl.trim() || body.youtubeUrl.length > 100 || !reg.test(body.youtubeUrl)) {
-        errorsCollect(errors, "Your url should be correct", "name");
+        errorsCollect(errors, "Your url should be correct", "youtubeUrl");
     }
     if (errors.length !== 0) {
         errorsResult(res, errors, 400);

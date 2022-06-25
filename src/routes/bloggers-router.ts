@@ -82,7 +82,7 @@ bloggersRouter.put('/:id',
     }
 
     if (!body.youtubeUrl || typeof body.youtubeUrl !== 'string' || !body.youtubeUrl.trim() || body.youtubeUrl.length > 100 || !reg.test(body.youtubeUrl)) {
-        errorsCollect(errors, "Your url should be correct", "name")
+        errorsCollect(errors, "Your url should be correct", "youtubeUrl")
     }
     if (errors.length !== 0) {
         errorsResult(res, errors, 400)
