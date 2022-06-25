@@ -1,14 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bloggersRouter = exports.bloggers = void 0;
+exports.bloggersRouter = void 0;
 const express_1 = require("express");
-exports.bloggers = [
-    { id: 1, name: "Lenko", youtubeUrl: "https://www.youtube.com/channel/UCkgXcNSMktRtfMiv64Pxo5g/videos" },
-    { id: 2, name: "Dimych", youtubeUrl: "https://www.youtube.com/c/ITKAMASUTRA/videos" },
-    { id: 3, name: "Humberman", youtubeUrl: "https://www.youtube.com/c/AndrewHubermanLab/videos" },
-    { id: 4, name: "Goblin", youtubeUrl: "https://www.youtube.com/c/DmitryPuchkov/videos" },
-    { id: 5, name: "Yamshchikov", youtubeUrl: "https://www.youtube.com/channel/UCQMteJvING2dzFIFbBYdipw/videos" }
-];
+const bloggers_repository_1 = require("../repositories/bloggers-repository");
+const auth_middleware_1 = require("../middlewares/auth-middleware");
 exports.bloggersRouter = (0, express_1.Router)({});
 const errorsCollect = (errors, message, field) => {
     const error = {
@@ -24,19 +19,11 @@ const errorsResult = (res, errorsMessages, status) => {
     };
     res.status(status).send(errorResult);
 };
-const getLastId = (bloggersArray) => {
-    let lastIndex = 0;
-    bloggersArray.forEach(el => {
-        if (el.id > lastIndex) {
-            lastIndex = el.id;
-        }
-    });
-    return lastIndex;
-};
 exports.bloggersRouter.get('/', (req, res) => {
-    res.send(exports.bloggers);
+    const bloggers = bloggers_repository_1.bloggersRepository.getBloggers();
+    res.send(bloggers);
 });
-exports.bloggersRouter.post('/', (req, res) => {
+exports.bloggersRouter.post('/', auth_middleware_1.authValidationMiddleware, (req, res) => {
     const body = req.body;
     let errors = [];
     const reg = new RegExp("^(http[s]?:\\/\\/(www\\.)?|ftp:\\/\\/(www\\.)?|www\\.){1}([0-9A-Za-z-\\.@:%_\+~#=]+)+((\\.[a-zA-Z]{2,3})+)(/(.)*)?(\\?(.)*)?");
@@ -50,18 +37,13 @@ exports.bloggersRouter.post('/', (req, res) => {
         errorsResult(res, errors, 404);
     }
     else {
-        const newBlogger = {
-            id: getLastId(exports.bloggers) + 1,
-            name: body.name,
-            youtubeUrl: body.youtubeUrl
-        };
-        exports.bloggers.push(newBlogger);
+        const newBlogger = bloggers_repository_1.bloggersRepository.createBlogger(body.name, body.youtubeUrl);
         res.status(201).send(newBlogger);
     }
 });
 exports.bloggersRouter.get('/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    const blogger = exports.bloggers.find(bl => bl.id === id);
+    const blogger = bloggers_repository_1.bloggersRepository.getBloggerById(id);
     if (!id) {
         res.send(404);
         return;
@@ -74,11 +56,11 @@ exports.bloggersRouter.get('/:id', (req, res) => {
         res.status(200).send(blogger);
     }
 });
-exports.bloggersRouter.put('/:id', (req, res) => {
+exports.bloggersRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => {
     const id = parseInt(req.params.id);
     const errors = [];
-    const blogger = exports.bloggers.find(bl => bl.id === id);
     const body = req.body;
+    const blogger = bloggers_repository_1.bloggersRepository.putBlogger(id, body.name, body.youtubeUrl);
     const reg = new RegExp("^(http[s]?:\\/\\/(www\\.)?|ftp:\\/\\/(www\\.)?|www\\.){1}([0-9A-Za-z-\\.@:%_\+~#=]+)+((\\.[a-zA-Z]{2,3})+)(/(.)*)?(\\?(.)*)?");
     if (!id) {
         res.send(404);
@@ -97,29 +79,23 @@ exports.bloggersRouter.put('/:id', (req, res) => {
         res.status(404).send();
     }
     else {
-        blogger.name = body.name;
-        blogger.youtubeUrl = body.youtubeUrl;
         res.sendStatus(204).send();
     }
 });
-exports.bloggersRouter.delete('/:id', (req, res) => {
+// ПРОВЕРИТЬ С ТП
+//убрала дополинительную проверку, хорошо проверить, может валиться тест
+exports.bloggersRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => {
     const id = parseInt(req.params.id);
-    const blogger = exports.bloggers.find(bl => bl.id === id);
+    const blogger = bloggers_repository_1.bloggersRepository.deleteBlogger(id);
     if (!id) {
         res.send(404);
     }
+    //нужна ли здесь проверка на наличие блогера, что этот айдишник не входит в скоуп?
     if (!blogger) {
         res.send(404);
     }
     else {
-        const newBloggerArray = exports.bloggers.filter(bl => bl.id !== id);
-        if (newBloggerArray.length < exports.bloggers.length) {
-            exports.bloggers = newBloggerArray;
-            res.sendStatus(204).send();
-        }
-        else {
-            res.send(404);
-        }
+        res.sendStatus(204).send();
     }
 });
 //# sourceMappingURL=bloggers-router.js.map

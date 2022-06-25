@@ -2,49 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postsRouter = void 0;
 const express_1 = require("express");
-const bloggers_router_1 = require("./bloggers-router");
-let posts = [
-    {
-        id: 1,
-        title: 'Some awesome video',
-        shortDescription: "New awesome video",
-        content: 'Some content2',
-        bloggerId: 2,
-        bloggerName: 'Lenko'
-    },
-    {
-        id: 2,
-        title: 'Back video',
-        shortDescription: 'New video about back',
-        content: 'Some content1',
-        bloggerId: 1,
-        bloggerName: 'Dimych'
-    },
-    {
-        id: 3,
-        title: 'Health video',
-        shortDescription: 'New video about health',
-        content: 'Some content3',
-        bloggerId: 3,
-        bloggerName: 'Huberman'
-    },
-    {
-        id: 4,
-        title: 'History video',
-        shortDescription: 'New video about history',
-        content: 'Some content4',
-        bloggerId: 4,
-        bloggerName: 'Goblin'
-    },
-    {
-        id: 5,
-        title: 'AI video',
-        shortDescription: 'New AI video',
-        content: 'Some content5',
-        bloggerId: 5,
-        bloggerName: 'Yamshchikov'
-    }
-];
+//import {bloggers} from "./bloggers-router";
+const posts_repository_1 = require("../repositories/posts-repository");
+const auth_middleware_1 = require("../middlewares/auth-middleware");
 exports.postsRouter = (0, express_1.Router)({});
 const errorsCollect = (errors, message, field) => {
     const error = {
@@ -60,19 +20,11 @@ const errorsResult = (res, errorsMessages, status) => {
     };
     res.status(status).send(errorResult);
 };
-const getLastPostsId = (postsArray) => {
-    let lastIndex = 0;
-    postsArray.forEach(el => {
-        if (el.id > lastIndex) {
-            lastIndex = el.id;
-        }
-    });
-    return lastIndex;
-};
 exports.postsRouter.get('/', (req, res) => {
+    const posts = posts_repository_1.postsRepository.getPosts();
     res.send(posts);
 });
-exports.postsRouter.post('/', (req, res) => {
+exports.postsRouter.post('/', auth_middleware_1.authValidationMiddleware, (req, res) => {
     const errors = [];
     const body = req.body;
     if (!body.title || typeof body.title !== 'string' || !body.title.trim() || body.title.length > 30) {
@@ -85,30 +37,25 @@ exports.postsRouter.post('/', (req, res) => {
         errorsCollect(errors, "You should enter the correct content", "content");
     }
     /*ТУТ МОЖЕТ БЫТЬ ОШИБКА, МОЖЕТ, НУЖНО ПРОВЕРКУ !BLOGGER ОТДЕЛЬНО*/
-    const blogger = bloggers_router_1.bloggers.find(bl => bl.id === req.body.bloggerId);
-    if (!body.bloggerId || typeof body.bloggerId !== "number" || !blogger) {
-        errorsCollect(errors, "You should enter the correct bloggerId", "bloggerId");
-    }
+    //const blogger = bloggers.find(bl => bl.id === req.body.bloggerId)
+    /*if (!body.bloggerId || typeof body.bloggerId !== "number" || !blogger) {
+        errorsCollect(errors, "You should enter the correct bloggerId", "bloggerId")
+    }*/
     if (errors.length !== 0) {
         errorsResult(res, errors, 400);
     }
     else {
-        const newPost = {
-            id: getLastPostsId(posts) + 1,
-            title: body.title,
-            shortDescription: body.shortDescription,
-            content: body.content,
-            bloggerId: body.bloggerId,
-            /*ПОДУМАТЬ, ОТКУДА БЕРЕТСЯ ЭТОТ АТРИБУТ*/
-            bloggerName: req.body.bloggerName
-        };
-        posts.push(newPost);
+        const newPost = posts_repository_1.postsRepository.createPost(body.title, body.shortDescription, body.content, body.bloggerId);
+        if (!newPost) {
+            res.status(400).send({ errors: [{ message: "You should enter the correct bloggerId", field: "bloggerId" }] });
+            return;
+        }
         res.status(201).send(newPost);
     }
 });
 exports.postsRouter.get('/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    const post = posts.find(p => p.id === id);
+    const post = posts_repository_1.postsRepository.getPostById(id);
     if (!id) {
         res.sendStatus(404);
         return;
@@ -121,11 +68,11 @@ exports.postsRouter.get('/:id', (req, res) => {
         res.status(200).send(post);
     }
 });
-exports.postsRouter.put('/:id', (req, res) => {
+exports.postsRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => {
     const errors = [];
     const id = parseInt(req.params.id);
-    const post = posts.find(p => p.id === id);
     const body = req.body;
+    const isUpdated = posts_repository_1.postsRepository.updatePost(id, body.title, body.shortDescription, body.content, body.bloggerId);
     if (!body.title || typeof body.title !== "string" || !body.title.trim() || body.title.length > 30) {
         errorsCollect(errors, "You should enter the correct title", "title");
     }
@@ -138,38 +85,29 @@ exports.postsRouter.put('/:id', (req, res) => {
     if (!body.bloggerId || typeof body.bloggerId !== "number") {
         errorsCollect(errors, "You should enter the correct BloggerId", "bloggerId");
     }
-    const blogger = bloggers_router_1.bloggers.find(bl => bl.id === req.body.bloggerId);
-    if (!blogger) {
-        errorsCollect(errors, "You should enter the correct bloggerId", "bloggerId");
-        return;
-    }
+    /*  const blogger = bloggers.find(bl => bl.id === req.body.bloggerId)
+      if (!blogger) {
+          errorsCollect(errors, "You should enter the correct bloggerId", "bloggerId")
+          return
+      }*/
     if (errors.length !== 0) {
         errorsResult(res, errors, 400);
     }
-    if (!post) {
+    if (!isUpdated) {
         errorsResult(res, errors, 404);
     }
     else {
-        post.title = body.title;
-        post.shortDescription = body.shortDescription;
-        post.content = body.content;
-        post.bloggerId = body.bloggerId;
         res.status(204).send();
     }
 });
-exports.postsRouter.delete('/:id', (req, res) => {
+exports.postsRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => {
     const id = parseInt(req.params.id);
-    const post = posts.find(p => p.id === id);
+    const post = posts_repository_1.postsRepository.deletePost(id);
     if (!post) {
         res.status(404).send();
     }
     else {
-        const newPostsArray = posts.filter(p => p.id !== id);
-        if (newPostsArray.length < posts.length) {
-            posts = newPostsArray;
-            res.status(204).send();
-        }
-        res.send(404);
+        res.status(204).send();
     }
 });
 //# sourceMappingURL=posts-router.js.map

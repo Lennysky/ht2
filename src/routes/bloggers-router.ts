@@ -1,13 +1,7 @@
 import {Router, Request, Response} from "express";
 import {bloggersRepository} from "../repositories/bloggers-repository";
+import {authValidationMiddleware} from "../middlewares/auth-middleware";
 
-export let bloggers: BloggerViewModelType[] = [
-    {id: 1, name: "Lenko", youtubeUrl: "https://www.youtube.com/channel/UCkgXcNSMktRtfMiv64Pxo5g/videos"},
-    {id: 2, name: "Dimych", youtubeUrl: "https://www.youtube.com/c/ITKAMASUTRA/videos"},
-    {id: 3, name: "Humberman", youtubeUrl: "https://www.youtube.com/c/AndrewHubermanLab/videos"},
-    {id: 4, name: "Goblin", youtubeUrl: "https://www.youtube.com/c/DmitryPuchkov/videos"},
-    {id: 5, name: "Yamshchikov", youtubeUrl: "https://www.youtube.com/channel/UCQMteJvING2dzFIFbBYdipw/videos"}
-]
 
 export const bloggersRouter = Router({})
 
@@ -27,13 +21,14 @@ const errorsResult = (res: Response, errorsMessages: FieldErrorType[], status: n
     res.status(status).send(errorResult)
 }
 
-
-
 bloggersRouter.get('/', (req: Request, res: Response) => {
+    const bloggers = bloggersRepository.getBloggers()
     res.send(bloggers)
 })
 
-bloggersRouter.post('/', (req: Request, res: Response) => {
+bloggersRouter.post('/',
+    authValidationMiddleware,
+    (req: Request, res: Response) => {
     const body: BloggerInputModelType = req.body
     let errors: FieldErrorType[] = []
     const reg = new RegExp("^(http[s]?:\\/\\/(www\\.)?|ftp:\\/\\/(www\\.)?|www\\.){1}([0-9A-Za-z-\\.@:%_\+~#=]+)+((\\.[a-zA-Z]{2,3})+)(/(.)*)?(\\?(.)*)?")
@@ -66,7 +61,9 @@ bloggersRouter.get('/:id', (req: Request, res: Response) => {
     }
 })
 
-bloggersRouter.put('/:id', (req: Request, res: Response) => {
+bloggersRouter.put('/:id',
+    authValidationMiddleware,
+    (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
     const errors: FieldErrorType[] = []
     const body: BloggerInputModelType = req.body
@@ -96,7 +93,9 @@ bloggersRouter.put('/:id', (req: Request, res: Response) => {
 
 // ПРОВЕРИТЬ С ТП
 //убрала дополинительную проверку, хорошо проверить, может валиться тест
-bloggersRouter.delete('/:id', (req: Request, res: Response) => {
+bloggersRouter.delete('/:id',
+    authValidationMiddleware,
+    (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
     const blogger = bloggersRepository.deleteBlogger(id)
     if (!id) {
@@ -109,12 +108,6 @@ bloggersRouter.delete('/:id', (req: Request, res: Response) => {
         res.sendStatus(204).send()
     }
 })
-
-type BloggerViewModelType = {
-    id: number
-    name: string
-    youtubeUrl: string
-}
 
 type FieldErrorType = {
     message: string

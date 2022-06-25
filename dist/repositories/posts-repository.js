@@ -1,6 +1,8 @@
-import {bloggers} from "./bloggers-repository"
-
-let posts: PostViewModelType[] = [
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.postsRepository = void 0;
+const bloggers_repository_1 = require("./bloggers-repository");
+let posts = [
     {
         id: 1,
         title: 'Some awesome video',
@@ -41,26 +43,24 @@ let posts: PostViewModelType[] = [
         bloggerId: 5,
         bloggerName: 'Yamshchikov'
     }
-]
-
-const getLastPostsId = (postsArray: PostViewModelType[]) => {
+];
+const getLastPostsId = (postsArray) => {
     let lastIndex = 0;
     postsArray.forEach(el => {
         if (el.id > lastIndex) {
-            lastIndex = el.id
+            lastIndex = el.id;
         }
-    })
-    return lastIndex
-}
-
-export const postsRepository = {
+    });
+    return lastIndex;
+};
+exports.postsRepository = {
     getPosts() {
-        return posts
+        return posts;
     },
-    createPost(title: string, shortDescription: string, content: string, bloggerId: number) {
-        const blogger = bloggers.find(bl => bl.id === bloggerId)
-        if(!blogger) {
-            return false
+    createPost(title, shortDescription, content, bloggerId) {
+        const blogger = bloggers_repository_1.bloggers.find(bl => bl.id === bloggerId);
+        if (!blogger) {
+            return false;
         }
         const newPost = {
             id: getLastPostsId(posts) + 1,
@@ -69,48 +69,41 @@ export const postsRepository = {
             content: content,
             bloggerId: bloggerId,
             bloggerName: blogger.name
-        }
-        posts.push(newPost)
-        return newPost
+        };
+        posts.push(newPost);
+        return newPost;
     },
-    getPostById(id: number) {
-        const post = posts.find(p => p.id === id)
+    getPostById(id) {
+        const post = posts.find(p => p.id === id);
         if (!post) {
-            return false
-        } else {
-            return post
+            return false;
+        }
+        else {
+            return post;
         }
     },
     // так можно сделать, чтобы после if не писать else, а сразу продолжение кода?
-    updatePost(id: number, title: string, shortDescription: string, content: string, bloggerId: number) {
-        const post = posts.find(p => p.id === id)
-        const blogger = bloggers.find(bl => bl.id === bloggerId)
+    updatePost(id, title, shortDescription, content, bloggerId) {
+        const post = posts.find(p => p.id === id);
+        const blogger = bloggers_repository_1.bloggers.find(bl => bl.id === bloggerId);
         if (!post || !blogger) {
-            return false
+            return false;
         }
         post.title = title;
         post.shortDescription = shortDescription;
         post.content = content;
         post.bloggerId = bloggerId;
-        post.bloggerName = blogger.name
-        return true
+        post.bloggerName = blogger.name;
+        return true;
     },
-    deletePost(id: number) {
-        const post = posts.find(p => p.id === id)
-        const newPostsArray = posts.filter(p => p.id === id)
+    deletePost(id) {
+        const post = posts.find(p => p.id === id);
+        const newPostsArray = posts.filter(p => p.id === id);
         if (newPostsArray.length < posts.length) {
-            posts = newPostsArray
-            return true
+            posts = newPostsArray;
+            return true;
         }
-        return false
+        return false;
     }
-}
-
-type PostViewModelType = {
-    id: number
-    title: string
-    shortDescription: string
-    content: string
-    bloggerId: number
-    bloggerName: string
-}
+};
+//# sourceMappingURL=posts-repository.js.map
