@@ -13,13 +13,17 @@ const errorsCollect = (errors: FieldErrorType[], message: string, field: string)
     errors.push(error)
 }
 
+
 const errorsResult = (res: Response, errorsMessages: FieldErrorType[], status: number) => {
     const errorResult: APIErrorResultType = {
         errorsMessages: errorsMessages,
-        resultCode: 1
+        //resultCode: 1
     }
     res.status(status).send(errorResult)
 }
+
+//bloggersRouter.get('/',)
+
 
 bloggersRouter.get('/', (req: Request, res: Response) => {
     const bloggers = bloggersRepository.getBloggers()
@@ -39,7 +43,7 @@ bloggersRouter.post('/',
         errorsCollect(errors, "You should enter the correct url", "youtubeUrl")
     }
     if (errors.length !== 0) {
-        errorsResult(res, errors, 404)
+        errorsResult(res, errors, 400)
     } else {
         const newBlogger = bloggersRepository.createBlogger(body.name, body.youtubeUrl)
         res.status(201).send(newBlogger)
@@ -121,5 +125,5 @@ type BloggerInputModelType = {
 
 type APIErrorResultType = {
     errorsMessages: FieldErrorType[]
-    resultCode: number
+    //resultCode: number
 }

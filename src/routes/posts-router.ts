@@ -16,7 +16,7 @@ const errorsCollect = (errors: FieldErrorType[], message: string, field: string)
 const errorsResult = (res: Response, errorsMessages: FieldErrorType[], status: number) => {
     const errorResult: APIErrorResultType = {
         errorsMessages: errorsMessages,
-        resultCode: 1
+        //resultCode: 1
     }
     res.status(status).send(errorResult)
 }
@@ -50,7 +50,11 @@ postsRouter.post('/',
     if (errors.length !== 0) {
         errorsResult(res, errors, 400)
     } else {
-        const newPost = postsRepository.createPost(body.title, body.shortDescription, body.content, body.bloggerId)
+        const newPost = postsRepository.createPost(
+            body.title,
+            body.shortDescription,
+            body.content,
+            body.bloggerId)
         if (!newPost) {
             res.status(400).send({errors: [{message: "You should enter the correct bloggerId", field: "bloggerId"}]})
         return
@@ -124,7 +128,7 @@ postsRouter.delete('/:id',
 
 type APIErrorResultType = {
     errorsMessages: FieldErrorType[]
-    resultCode: number
+    //resultCode: number
 }
 
 type FieldErrorType = {

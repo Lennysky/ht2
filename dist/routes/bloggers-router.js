@@ -15,10 +15,11 @@ const errorsCollect = (errors, message, field) => {
 const errorsResult = (res, errorsMessages, status) => {
     const errorResult = {
         errorsMessages: errorsMessages,
-        resultCode: 1
+        //resultCode: 1
     };
     res.status(status).send(errorResult);
 };
+//bloggersRouter.get('/',)
 exports.bloggersRouter.get('/', (req, res) => {
     const bloggers = bloggers_repository_1.bloggersRepository.getBloggers();
     res.send(bloggers);
@@ -34,7 +35,7 @@ exports.bloggersRouter.post('/', auth_middleware_1.authValidationMiddleware, (re
         errorsCollect(errors, "You should enter the correct url", "youtubeUrl");
     }
     if (errors.length !== 0) {
-        errorsResult(res, errors, 404);
+        errorsResult(res, errors, 400);
     }
     else {
         const newBlogger = bloggers_repository_1.bloggersRepository.createBlogger(body.name, body.youtubeUrl);

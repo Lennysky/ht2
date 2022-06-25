@@ -16,7 +16,7 @@ const errorsCollect = (errors, message, field) => {
 const errorsResult = (res, errorsMessages, status) => {
     const errorResult = {
         errorsMessages: errorsMessages,
-        resultCode: 1
+        //resultCode: 1
     };
     res.status(status).send(errorResult);
 };
